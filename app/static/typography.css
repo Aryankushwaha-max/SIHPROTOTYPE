@@ -1,0 +1,20 @@
+h1,
+h2,
+h3,
+.metric strong,
+.brand-name,
+.popup-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+}
+
+.page-heading h1 {
+  font-size: 29px;
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+.panel-heading h2 {
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 650;
+}

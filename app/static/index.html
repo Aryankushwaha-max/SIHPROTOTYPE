@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8f7">
+  <title>Nearby Wells | eRTMAC-NWIS</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://{s}.tile.openstreetmap.org">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/reference.css">
+  <link rel="stylesheet" href="/static/friendly.css">
+  <link rel="stylesheet" href="/static/typography.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="eRTMAC Nearby Wells home">
+      <span class="brand-mark">NW</span>
+      <span class="brand-name">eRTMAC <span>/</span> Nearby Wells</span>
+    </a>
+    <div class="top-actions"><span class="dataset-indicator"></span><span>Reference data</span><a href="/docs">Help &amp; API</a></div>
+  </header>
+
+  <main class="page">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">DRILLING KNOWLEDGE</p>
+        <h1>Nearby well intelligence</h1>
+        <p class="intro">Explore wells, review drilling history and search report excerpts in one place.</p>
+      </div>
+      <label class="focus-picker" for="activeWell">
+        <span>Focus well</span>
+        <select id="activeWell" aria-label="Choose a well to focus on"></select>
+      </label>
+    </section>
+
+    <aside class="data-note"><span class="note-mark">i</span><p><strong>Reference dataset</strong> — includes public Norwegian records and clearly labelled synthetic examples. This prototype is not connected to live eRTMAC or OIL data.</p></aside>
+
+    <section class="metrics" aria-label="Dataset summary">
+      <article class="metric"><span class="metric-label">Wells near this location</span><div><strong id="wellCount">—</strong><span class="metric-icon blue">⌖</span></div><small>inside your chosen radius</small></article>
+      <article class="metric"><span class="metric-label">Structured records</span><div><strong id="eventCount">—</strong><span class="metric-icon amber">▤</span></div><small>events and routine records</small></article>
+      <article class="metric"><span class="metric-label">High / critical events</span><div><strong id="highCount">—</strong><span class="metric-icon red">!</span></div><small>labels from the sample dataset</small></article>
+      <article class="metric"><span class="metric-label">Synthetic wells</span><div><strong id="activeCount">—</strong><span class="metric-icon green">◎</span></div><small>demonstration controls</small></article>
+    </section>
+
+    <section class="main-grid">
+      <article class="panel map-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">MAP</p><h2>Explore by location</h2></div>
+          <label class="radius-control" for="radius"><span>Search radius</span><select id="radius"><option value="3">3 km</option><option value="5" selected>5 km</option><option value="10">10 km</option><option value="20">20 km</option></select></label>
+        </div>
+        <div class="location-tools">
+          <form id="mapSearch" class="map-search"><label class="visually-hidden" for="locationQuery">Search well name or ID</label><input id="locationQuery" type="search" placeholder="Find a well by name or ID"><button type="submit" class="secondary-btn">Find well</button></form>
+          <form id="coordinateSearch" class="coordinate-search"><label class="visually-hidden" for="coordinateQuery">Enter latitude and longitude</label><input id="coordinateQuery" type="text" placeholder="Latitude, longitude"><button type="submit" class="secondary-btn">Go to coordinates</button></form>
+          <button type="button" class="location-btn" id="useLocation"><span aria-hidden="true">◎</span> Use my location</button>
+        </div>
+        <p id="locationMessage" class="location-message" aria-live="polite">Select a well, enter coordinates, or click anywhere on the map.</p>
+        <div id="map" aria-label="Map of wells and nearby locations"></div>
+        <div class="map-legend"><span><i class="legend-dot active"></i>Focus well</span><span><i class="legend-dot"></i>Reference well</span><span><i class="legend-dot synthetic"></i>Synthetic example</span></div>
+        <section class="nearby-results" aria-live="polite"><div class="nearby-heading"><h3>Wells in this area</h3><span id="nearbyLabel">Within 5 km</span></div><div id="nearbyList" class="nearby-list"></div></section>
+      </article>
+
+      <article class="panel risk-panel">
+        <div class="panel-heading"><div><p class="eyebrow">AT A GLANCE</p><h2>Events near this depth</h2></div><span class="demo-tag">SAMPLE DATA</span></div>
+        <div class="risk-context"><span>Focus well depth</span><b id="riskDepth">619 m MD</b></div>
+        <div id="riskList" class="risk-list"></div>
+        <div class="risk-foot">Screening indicators are examples only. Check original records and approved operating procedures.</div>
+      </article>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="panel events-panel">
+        <div class="panel-heading"><div><p class="eyebrow">WELL HISTORY</p><h2>Operational events nearby</h2></div><button class="quiet-btn" id="clearFilters" type="button">Clear filters</button></div>
+        <div class="filters"><label class="visually-hidden" for="search">Search nearby events</label><input id="search" type="search" placeholder="Search event descriptions"><label class="visually-hidden" for="typeFilter">Filter by event type</label><select id="typeFilter"><option value="">All event types</option></select><label class="visually-hidden" for="severityFilter">Filter by severity</label><select id="severityFilter"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option><option>low</option></select></div>
+        <div class="table-wrap"><table><thead><tr><th>Event</th><th>Well / depth</th><th>Formation</th><th>Severity</th><th>Record detail</th></tr></thead><tbody id="eventRows"></tbody></table></div>
+        <div id="emptyState" class="empty-state" hidden>No events found for this location. Try a wider radius or another well.</div>
+      </article>
+      <article class="panel assess-panel">
+        <div class="panel-heading"><div><p class="eyebrow">OPTIONAL REVIEW</p><h2>Check a sample snapshot</h2></div></div>
+        <p class="panel-copy">Enter measurements to see which demonstration screening rules would be raised.</p>
+        <form id="riskForm">
+          <div class="form-row"><label>Measured depth <span>m</span><input name="md_m" type="number" value="619" min="0" required></label><label>Flow change <span>%</span><input name="flow_delta_pct" type="number" value="0" step="any"></label></div>
+          <div class="form-row"><label>Loss rate <span>m³/h</span><input name="mud_loss_rate_m3h" type="number" value="0" min="0" step="any"></label><label>Torque <span>kN·m</span><input name="torque_knm" type="number" value="0" min="0" step="any"></label></div>
+          <button class="primary-btn" type="submit">Review snapshot <span aria-hidden="true">→</span></button>
+        </form>
+        <div id="assessmentResult" class="assessment-result" aria-live="polite">This does not use live measurements or provide operational instructions.</div>
+      </article>
+    </section>
+
+    <section class="insight-grid">
+      <article class="panel telemetry-panel">
+        <div class="panel-heading"><div><p class="eyebrow">HISTORICAL REFERENCE</p><h2>Volve telemetry · 15/9-F-9A</h2></div><span class="demo-tag">NOT LIVE</span></div>
+        <p class="panel-copy" id="telemetryNote">Loading historical data…</p>
+        <div id="telemetryChart" class="telemetry-chart"></div>
+        <div class="chart-legend"><span><i class="chart-line torque"></i>Torque · kN·m</span><span><i class="chart-line rotary"></i>Rotary speed · rpm</span><span><i class="chart-dash"></i>Archived incident reference · 619 m MD</span></div>
+      </article>
+      <article class="panel ddr-panel">
+        <div class="panel-heading"><div><p class="eyebrow">REPORT SEARCH</p><h2>Daily drilling reports</h2></div><span class="demo-tag">1,686 EXCERPTS</span></div>
+        <p class="panel-copy">Search archived report text. The source extract does not identify each report’s individual well, so results are not placed on the map.</p>
+        <form id="ddrForm" class="ddr-search"><label class="visually-hidden" for="ddrQuery">Search report text</label><input id="ddrQuery" type="search" minlength="2" placeholder="Try “stuck pipe” or “mud loss”" required><button class="primary-btn" type="submit">Search reports</button></form>
+        <div id="ddrResults" class="ddr-results" aria-live="polite"><div class="ddr-empty">Enter a phrase above to find matching report excerpts.</div></div>
+      </article>
+    </section>
+
+    <footer><span>eRTMAC-NWIS · Decision support prototype</span><span>Reference data · OpenStreetMap</span><a href="/docs">API documentation</a></footer>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+nwis.db
+/data/
+.env
+/SIH_2026_PLANNS.zip
